@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 public class Player : MonoBehaviour {
@@ -24,6 +23,12 @@ public class Player : MonoBehaviour {
 	[Space]
 	[SerializeField][Range(0.0F, 1.0F)] private float airControl;
 	[SerializeField][Range(1.0F, 3.0F)] private float turnAroundMultiplier;
+	[Space]
+	[SerializeField] private float bobSpeed;
+	[SerializeField] private float bobAcceleration;
+	[SerializeField] private float bobAmplitude;
+	[Space]
+	[SerializeField] private float cameraHeightOffset = -0.2F;
 
 	private CharacterController controller;
 	private new Camera camera;
@@ -31,6 +36,8 @@ public class Player : MonoBehaviour {
 	private Vector3 desiredVelocity;
 	private float yaw;
 	private float pitch;
+	private float bobCounter;
+	private float bobMultiplier;
 
 	private void Awake() {
 		controller = GetComponent<CharacterController>();
@@ -44,6 +51,7 @@ public class Player : MonoBehaviour {
 
 		Move();
 		Rotate();
+		Bob();
 	}
 
 	private void Move() {
@@ -113,7 +121,11 @@ public class Player : MonoBehaviour {
 			}
 		}
 
-		// TODO: Ceiling bump.
+		Ray ceilingRay = new Ray(transform.position + Vector3.up * (controller.height - controller.radius + 0.2F), Vector3.up);
+		RaycastHit hit;
+		if(Physics.SphereCast(ceilingRay, controller.radius - 0.2F, out hit, 0.05F, LayerMask.GetMask("Default"))) {
+			targetVelocity.y = Mathf.Clamp(targetVelocity.y, float.MinValue, Mathf.InverseLerp(targetVelocity.y, 0.0F, Vector3.Dot(Vector3.down, hit.normal)));
+		}
 
 		wasGrounded = isGrounded;
 		desiredVelocity = targetVelocity;
@@ -129,6 +141,27 @@ public class Player : MonoBehaviour {
 
 		transform.eulerAngles = Vector3.up * yaw;
 		camera.transform.localEulerAngles = Vector3.right * pitch;
+	}
+
+	private void Bob() {
+		float speedPercent = Vector3.ProjectOnPlane(controller.velocity, Vector3.up).magnitude / walkSpeed;
+
+		bobCounter += bobSpeed * speedPercent * Time.deltaTime;
+		bobMultiplier = Mathf.MoveTowards(
+			bobMultiplier,
+			Mathf.Clamp01(speedPercent),
+			bobAcceleration * Time.deltaTime
+		);
+
+		camera.transform.localPosition = Vector3.up * (
+			controller.height +
+			cameraHeightOffset +
+			Mathf.Sin(bobCounter) * bobAmplitude * bobMultiplier
+		);
+	}
+
+	private void OnGUI() {
+		GUILayout.Label(string.Format("Speed: {0:F3}", controller.velocity.magnitude));
 	}
 
 }
