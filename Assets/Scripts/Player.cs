@@ -5,8 +5,19 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class Player : MonoBehaviour {
 
-	[SerializeField] private InputGameActions input;
+	//----------------------------------------------------------------------------------------------------------
 
+	public float BobMultiplier => bobMultiplier;
+	public float BobCounter => bobCounter;
+	public float CameraDrift => cameraHeightDrift;
+
+	public Camera Camera => camera;
+	public AmmoPool Ammo => ammo;
+
+	//----------------------------------------------------------------------------------------------------------
+
+	[SerializeField] private InputGameActions input;
+	[Space]
 	[SerializeField] private float walkSpeed;
 	[SerializeField] private float walkAcceleration;
 	[Space]
@@ -29,32 +40,56 @@ public class Player : MonoBehaviour {
 	[SerializeField] private float bobAmplitude;
 	[Space]
 	[SerializeField] private float cameraHeightOffset = -0.2F;
+	[SerializeField] private float cameraHeightDriftMax = -0.2F;
+	[SerializeField] private float cameraHeightDropScale = 0.4F;
+	[SerializeField] private float cameraHeightReturn = 8.0F;
+
+	//----------------------------------------------------------------------------------------------------------
 
 	private CharacterController controller;
 	private new Camera camera;
+	private AmmoPool ammo;
+	private Item[] items;
 	private bool wasGrounded;
 	private Vector3 desiredVelocity;
 	private float yaw;
 	private float pitch;
 	private float bobCounter;
 	private float bobMultiplier;
+	private float cameraHeightDrift;
+	private float cameraHeightDriftSpeed;
+
+	//----------------------------------------------------------------------------------------------------------
 
 	private void Awake() {
 		controller = GetComponent<CharacterController>();
 		camera = GetComponentInChildren<Camera>();
+		items = GetComponentsInChildren<Item>(true);
+		ammo = new AmmoPool();
 		input = new InputGameActions();
 		input.Enable();
 	}
 
+	//----------------------------------------------------------------------------------------------------------
+
+	private void Start() {
+		ammo.Set("magnum", 24);
+		ammo.Set("acp", 60);
+		ammo.Set("shells", 20);
+	}
+
+	//----------------------------------------------------------------------------------------------------------
+
 	private void Update() {
 		if(Game.Instance.IsPaused) return;
 
-		Move();
-		Rotate();
-		Bob();
+		MoveBody();
+		UpdateCameraTransform();
 	}
 
-	private void Move() {
+	//----------------------------------------------------------------------------------------------------------
+
+	private void MoveBody() {
 		Vector3 inputVector;
 		Vector3 targetVelocity;
 		bool isGrounded;
@@ -63,7 +98,6 @@ public class Player : MonoBehaviour {
 		float turnAround;
 		float speed;
 		float acceleration;
-		
 		
 		inputVector = input.FindAction("Player/Move").ReadValue<Vector2>();
 		inputVector = transform.TransformDirection(
@@ -108,6 +142,7 @@ public class Player : MonoBehaviour {
 
 		if(isGrounded) {
 			if(!wasGrounded && targetVelocity.y <= 0.0F) {
+				cameraHeightDriftSpeed = targetVelocity.y * cameraHeightDropScale;
 				targetVelocity.y = -1.0F;
 			} else if(input.FindAction("Player/Jump").IsPressed()) {
 				targetVelocity.y = jumpUpSpeed;
@@ -132,6 +167,47 @@ public class Player : MonoBehaviour {
 		controller.Move(desiredVelocity * Time.deltaTime);
 	}
 
+	//----------------------------------------------------------------------------------------------------------
+
+	private void UpdateCameraTransform() {
+		float speedPercent = Vector3.ProjectOnPlane(controller.velocity, Vector3.up).magnitude / walkSpeed;
+
+		bobCounter += bobSpeed * speedPercent * Time.deltaTime;
+		bobMultiplier = Mathf.MoveTowards(
+			bobMultiplier,
+			Mathf.Clamp01(speedPercent) * (controller.isGrounded ? 1.0F : 0.0F),
+			bobAcceleration * Time.deltaTime
+		);
+
+		UpdateCameraDrift();
+		Rotate();
+
+		camera.transform.localPosition = Vector3.up * (
+			controller.height +
+			cameraHeightOffset +
+			cameraHeightDrift +
+			Mathf.Sin(bobCounter) * bobAmplitude * bobMultiplier
+		);
+	}
+
+	//----------------------------------------------------------------------------------------------------------
+
+	private void UpdateCameraDrift() {
+		if(cameraHeightDrift < 0.0F) {
+			cameraHeightDriftSpeed += cameraHeightReturn * Time.deltaTime;
+		}
+		cameraHeightDrift += cameraHeightDriftSpeed * Time.deltaTime;
+		if(cameraHeightDrift < cameraHeightDriftMax) {
+			cameraHeightDriftSpeed = 0.0F;
+			cameraHeightDrift = cameraHeightDriftMax;
+		} else if(cameraHeightDrift > 0.0F) {
+			cameraHeightDriftSpeed = 0.0F;
+			cameraHeightDrift = 0.0F;
+		}
+	}
+
+	//----------------------------------------------------------------------------------------------------------
+
 	private void Rotate() {
 		Vector2 rotate = input.FindAction("Player/Rotate").ReadValue<Vector2>() / 10.0F;
 
@@ -143,25 +219,12 @@ public class Player : MonoBehaviour {
 		camera.transform.localEulerAngles = Vector3.right * pitch;
 	}
 
-	private void Bob() {
-		float speedPercent = Vector3.ProjectOnPlane(controller.velocity, Vector3.up).magnitude / walkSpeed;
-
-		bobCounter += bobSpeed * speedPercent * Time.deltaTime;
-		bobMultiplier = Mathf.MoveTowards(
-			bobMultiplier,
-			Mathf.Clamp01(speedPercent),
-			bobAcceleration * Time.deltaTime
-		);
-
-		camera.transform.localPosition = Vector3.up * (
-			controller.height +
-			cameraHeightOffset +
-			Mathf.Sin(bobCounter) * bobAmplitude * bobMultiplier
-		);
-	}
+	//----------------------------------------------------------------------------------------------------------
 
 	private void OnGUI() {
 		GUILayout.Label(string.Format("Speed: {0:F3}", controller.velocity.magnitude));
 	}
+
+	//----------------------------------------------------------------------------------------------------------
 
 }
