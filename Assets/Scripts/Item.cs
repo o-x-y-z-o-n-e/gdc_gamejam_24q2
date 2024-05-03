@@ -34,7 +34,7 @@ public class Item : MonoBehaviour {
 	private SpriteRenderer spriteRenderer;
 	private AudioSource audioSource;
 	private Player player;
-	private Func<IEnumerable>[] states;
+	private Func<IEnumerator>[] states;
 	private int currentStateIndex = -1;
 	private Coroutine currentState;
 	private Vector2 spriteOffset;
@@ -63,6 +63,10 @@ public class Item : MonoBehaviour {
 		StopCurrentState();
 	}
 
+	protected virtual void OnEnable() {
+		
+	}
+
 	//----------------------------------------------------------------------------------------------------------
 
 	private void Update() {
@@ -77,7 +81,7 @@ public class Item : MonoBehaviour {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	protected virtual Func<IEnumerable>[] GetStateList() => new Func<IEnumerable>[0];
+	protected virtual Func<IEnumerator>[] GetStateList() => new Func<IEnumerator>[0];
 
 	//----------------------------------------------------------------------------------------------------------
 
@@ -88,7 +92,7 @@ public class Item : MonoBehaviour {
 		StopCurrentState();
 
 		currentStateIndex = state;
-		currentState = StartCoroutine(states[state].Invoke().GetEnumerator());
+		currentState = StartCoroutine(states[state].Invoke());
 	}
 
 	//----------------------------------------------------------------------------------------------------------
@@ -138,7 +142,7 @@ public class Item : MonoBehaviour {
 	protected void SetOffset(float x, float y) {
 		spriteOffset.x = PixelToUnit(x);
 		spriteOffset.y = PixelToUnit(y);
-		spriteRenderer.transform.localPosition = spriteOffset;
+		// spriteRenderer.transform.localPosition = spriteOffset;
 	}
 
 	//----------------------------------------------------------------------------------------------------------
@@ -163,8 +167,8 @@ public class Item : MonoBehaviour {
 
 	private Vector2 GetBob() {
 		bob.x = Mathf.Sin(player.BobCounter) * bobStrength.x;
-		bob.y = (Mathf.Cos(player.BobCounter * 2) * bobStrength.y)- bobStrength.y;
-		return bob * player.BobMultiplier;
+		bob.y = (Mathf.Cos(player.BobCounter * 2) * bobStrength.y) - bobStrength.y;
+		return bob * player.BobMoveMultiplier;
 	}
 
 	//----------------------------------------------------------------------------------------------------------

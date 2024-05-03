@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 /* ==TODO==
@@ -32,7 +33,16 @@ public class Game : MonoBehaviour {
 
 	public bool IsPaused => isPaused;
 
+	public HUD HUD => hud;
+	public PauseMenu PauseMenu => pauseMenu;
+
+	public Player Player => player;
+
 	//----------------------------------------------------------------------------------------------------------
+
+	[SerializeField] private Player player;
+	[SerializeField] private HUD hud;
+	[SerializeField] private PauseMenu pauseMenu;
 
 	private bool isPaused;
 
@@ -50,11 +60,17 @@ public class Game : MonoBehaviour {
 		instance = null;
 	}
 
+	public void SetPaused(bool paused) {
+		isPaused = paused;
+		hud.gameObject.SetActive(!isPaused);
+		pauseMenu.gameObject.SetActive(isPaused);
+	}
+
 	//----------------------------------------------------------------------------------------------------------
 
 	private void Update() {
 		if(Input.GetKeyDown(KeyCode.Escape)) {
-			isPaused = !isPaused;
+			SetPaused(!isPaused);
 		}
 
 		Cursor.visible = isPaused;

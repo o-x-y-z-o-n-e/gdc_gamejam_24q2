@@ -45,7 +45,7 @@ public class Revolver : Weapon {
 
 
 		// Sprites.
-		string root = "Revolver/";
+		string root = "Weapons/Revolver/";
 
 		ICON = Resources.Load<Sprite>(root+"Extra/icon");
 
@@ -99,7 +99,7 @@ public class Revolver : Weapon {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	private IEnumerable Idle() {
+	private IEnumerator Idle() {
 		SetFrame(IDLE_FRAMES[m_isCocked ? 1 : 0]);
 
 		while(true) {
@@ -124,7 +124,7 @@ public class Revolver : Weapon {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	private IEnumerable Fire() {
+	private IEnumerator Fire() {
 		SetTickRate(45);
 		SendAttackRaycast();
 		RemoveAmmo(1);
@@ -162,7 +162,7 @@ public class Revolver : Weapon {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	private IEnumerable Equip() {
+	private IEnumerator Equip() {
 		m_isCocked = true;
 
 		// PlaySound(EQUIP_SOUND);
@@ -177,7 +177,7 @@ public class Revolver : Weapon {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	private IEnumerable Dequip() {
+	private IEnumerator Dequip() {
 		for(int i = 3; i >= 0; i--) {
 			SetFrame(EQUIP_FRAMES[i]);
 			yield return Tick(1);
@@ -188,7 +188,7 @@ public class Revolver : Weapon {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	private IEnumerable Cock() {
+	private IEnumerator Cock() {
 		// Cock hammer.
 		for(int i = 0; i < 8; i++) {
 			SetFrame(COCK_FRAMES[i]);
@@ -203,7 +203,7 @@ public class Revolver : Weapon {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	private IEnumerable Open() {
+	private IEnumerator Open() {
 		// Uncock hammer.
 		if(m_isCocked) {
 			for(int i = 7; i >= 0; i--) {
@@ -254,7 +254,7 @@ public class Revolver : Weapon {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	private IEnumerable Load() {
+	private IEnumerator Load() {
 		for(int i = 0; i < 4; i++) {
 			SetFrame(LOAD_FRAMES[i]);
 			yield return Tick(1);
@@ -288,8 +288,8 @@ public class Revolver : Weapon {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	protected override Func<IEnumerable>[] GetStateList() {
-		return new Func<IEnumerable>[] {
+	protected override Func<IEnumerator>[] GetStateList() {
+		return new Func<IEnumerator>[] {
 			Equip,
 			Dequip,
 			Idle,
