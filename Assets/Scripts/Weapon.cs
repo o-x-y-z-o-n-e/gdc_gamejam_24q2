@@ -47,6 +47,14 @@ public class Weapon : Item {
 		base.Start();
 	}
 
+
+	//----------------------------------------------------------------------------------------------------------
+
+	protected override void OnEnable() {
+		base.OnEnable();
+		// Game.Instance.HUD.SetAmmo(UsesMags ? m_mag : -1, UsesAmmo ? Ammo : -1);
+	}
+
 	//----------------------------------------------------------------------------------------------------------
 
 	protected bool CheckAttack() {
@@ -151,7 +159,7 @@ public class Weapon : Item {
 
 		m_mag += want;
 
-		// UI.GetMenu<HUD>().UpdateItemText(this);
+		Game.Instance.HUD.SetAmmo(UsesMags ? m_mag : -1, UsesAmmo ? Ammo : -1);
 	}
 
 	//----------------------------------------------------------------------------------------------------------
@@ -170,11 +178,11 @@ public class Weapon : Item {
 			if(m_mag > m_magCapacity)
 				m_mag = m_magCapacity;
 
-			// UI.GetMenu<HUD>().UpdateItemText(this);
 		} else {
-			// Player.Ammo.OffsetAmount(m_ammoType, delta);
-			// UI is already updated.
+			Player.Ammo.Take(m_ammoType, delta);
 		}
+
+		Game.Instance.HUD.SetAmmo(UsesMags ? m_mag : -1, UsesAmmo ? Ammo : -1);
 	}
 
 	//----------------------------------------------------------------------------------------------------------
@@ -223,9 +231,9 @@ public class Weapon : Item {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	/*
+	
 	protected Casing SpawnCasing(Casing prefab, Vector3 offset, Vector3 direction, float speed, int startingFrame) {
-		Transform cam = Player.GetCamera().transform;
+		Transform cam = Player.Camera.transform;
 
 		direction.x += Random.Range(-CASING_EJECT_VARIANCE, CASING_EJECT_VARIANCE);
 		direction.y += Random.Range(-CASING_EJECT_VARIANCE, CASING_EJECT_VARIANCE);
@@ -235,21 +243,20 @@ public class Weapon : Item {
 		Vector3 dir = cam.TransformDirection(direction.normalized);
 
 		RaycastHit hit;
-		Vector3 origin = Player.GetCamera().transform.parent.position;
+		Vector3 origin = cam.parent.position;
 		if(Physics.Linecast(origin, pos, out hit, LayerMask.GetMask("Default"))) {
 			Vector3 diff = origin - hit.point;
 
 			pos = hit.point + (diff.normalized * 0.1F);
 		}
 
-		Casing instance = Game.Context.Spawn(prefab, pos, Quaternion.identity, SpawnCategory.Particle);
+		Casing instance = Instantiate(prefab, pos, Quaternion.identity);
 		instance.SetFrame(startingFrame);
 		instance.SetDirection(dir);
 		instance.SetSpeed(speed);
 
 		return instance;
 	}
-	*/
 
 	//----------------------------------------------------------------------------------------------------------
 

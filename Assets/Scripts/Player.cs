@@ -7,16 +7,21 @@ public class Player : MonoBehaviour {
 
 	//----------------------------------------------------------------------------------------------------------
 
-	public float BobMultiplier => bobMultiplier;
+	public float BobMoveMultiplier => bobMoveMultiplier;
+	public float BobGroundMultiplier => bobGroundMultiplier;
 	public float BobCounter => bobCounter;
 	public float CameraDrift => cameraHeightDrift;
 
 	public Camera Camera => camera;
 	public AmmoPool Ammo => ammo;
 
+	public bool IsDead => health == 0;
+
 	//----------------------------------------------------------------------------------------------------------
 
 	[SerializeField] private InputGameActions input;
+	[Space]
+	[SerializeField] private int maxHealth = 100;
 	[Space]
 	[SerializeField] private float walkSpeed;
 	[SerializeField] private float walkAcceleration;
@@ -43,7 +48,7 @@ public class Player : MonoBehaviour {
 	[SerializeField] private float cameraHeightDriftMax = -0.2F;
 	[SerializeField] private float cameraHeightDropScale = 0.4F;
 	[SerializeField] private float cameraHeightReturn = 8.0F;
-
+	
 	//----------------------------------------------------------------------------------------------------------
 
 	private CharacterController controller;
@@ -55,9 +60,11 @@ public class Player : MonoBehaviour {
 	private float yaw;
 	private float pitch;
 	private float bobCounter;
-	private float bobMultiplier;
+	private float bobMoveMultiplier;
+	private float bobGroundMultiplier;
 	private float cameraHeightDrift;
 	private float cameraHeightDriftSpeed;
+	private int health;
 
 	//----------------------------------------------------------------------------------------------------------
 
@@ -73,9 +80,11 @@ public class Player : MonoBehaviour {
 	//----------------------------------------------------------------------------------------------------------
 
 	private void Start() {
-		ammo.Set("magnum", 24);
+		ammo.Set("magnum", 100);
 		ammo.Set("acp", 60);
 		ammo.Set("shells", 20);
+
+		SetHealth(maxHealth);
 	}
 
 	//----------------------------------------------------------------------------------------------------------
@@ -85,6 +94,12 @@ public class Player : MonoBehaviour {
 
 		MoveBody();
 		UpdateCameraTransform();
+
+		if(Input.GetKey(KeyCode.Mouse1)) {
+			Time.timeScale = 0.25F;
+		} else {
+			Time.timeScale = 1.0F;
+		}
 	}
 
 	//----------------------------------------------------------------------------------------------------------
@@ -170,14 +185,22 @@ public class Player : MonoBehaviour {
 	//----------------------------------------------------------------------------------------------------------
 
 	private void UpdateCameraTransform() {
-		float speedPercent = Vector3.ProjectOnPlane(controller.velocity, Vector3.up).magnitude / walkSpeed;
+		float speed = Vector3.ProjectOnPlane(controller.velocity, Vector3.up).magnitude;
+		float speedPercent = Mathf.Clamp(speed, 0.0F, runSpeed) / walkSpeed;
 
-		bobCounter += bobSpeed * speedPercent * Time.deltaTime;
-		bobMultiplier = Mathf.MoveTowards(
-			bobMultiplier,
-			Mathf.Clamp01(speedPercent) * (controller.isGrounded ? 1.0F : 0.0F),
+		bobMoveMultiplier = Mathf.MoveTowards(
+			bobMoveMultiplier,
+			speedPercent,
 			bobAcceleration * Time.deltaTime
 		);
+
+		bobGroundMultiplier = Mathf.MoveTowards(
+			bobGroundMultiplier,
+			controller.isGrounded ? 1.0F : 0.25F,
+			bobAcceleration * Time.deltaTime
+		);
+
+		bobCounter += bobSpeed * bobGroundMultiplier * bobMoveMultiplier * Time.deltaTime;
 
 		UpdateCameraDrift();
 		Rotate();
@@ -186,7 +209,7 @@ public class Player : MonoBehaviour {
 			controller.height +
 			cameraHeightOffset +
 			cameraHeightDrift +
-			Mathf.Sin(bobCounter) * bobAmplitude * bobMultiplier
+			Mathf.Sin(bobCounter) * bobAmplitude * Mathf.Clamp01(bobMoveMultiplier * bobGroundMultiplier)
 		);
 	}
 
@@ -227,4 +250,21 @@ public class Player : MonoBehaviour {
 
 	//----------------------------------------------------------------------------------------------------------
 
+	public void SetHealth(int health) {
+		this.health = System.Math.Clamp(health, 0, maxHealth);
+		Game.Instance.HUD.SetHealth(health, maxHealth);
+	}
+
+	public void TakeDamage(int amount) {
+		health = System.Math.Clamp(health - amount, 0, maxHealth);
+		if(health == 0) {
+			OnDeath();
+		}
+
+		Game.Instance.HUD.SetHealth(health, maxHealth);
+	}
+
+	private void OnDeath() {
+
+	}
 }
