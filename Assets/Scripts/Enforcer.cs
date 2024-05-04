@@ -64,6 +64,18 @@ public class Enforcer : Weapon {
 			new Frame("Weapons/Enforcer/Sprites/LIBEF0"),
 			new Frame("Weapons/Enforcer/Sprites/LIBEG0"),
 			new Frame("Weapons/Enforcer/Sprites/LIBEH0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCA0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCB0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCC0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCD0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCE0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCF0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCG0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCH0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCI0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCJ0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCK0"),
+			new Frame("Weapons/Enforcer/Sprites/LIBCL0"),
 		};
 
 		SetVerticalSpriteClamp(2);
@@ -71,12 +83,14 @@ public class Enforcer : Weapon {
 
 	protected override void OnEnable() {
 		base.OnEnable();
+		GoTo(IDLE_ANIMATION);
+		//if(Mag == 0 && Ammo > 0) {
+		//	GoTo(RELOAD_ANIMATION);
+		//} else {
+		//	GoTo(IDLE_ANIMATION);
+		//}
 
-		if(Mag == 0 && Ammo > 0) {
-			GoTo(RELOAD_ANIMATION);
-		} else {
-			GoTo(IDLE_ANIMATION);
-		}
+		Debug.Log(RELOAD_FRAMES.Length);
 	}
 
 	//----------------------------------------------------------------------------------------------------------
@@ -130,12 +144,16 @@ public class Enforcer : Weapon {
 
 	private IEnumerator Reload() {
 		SetTickRate(60);
+
+		// LIBM
 		SetFrame(RELOAD_FRAMES[00]); yield return Tick(3);
 		SetFrame(RELOAD_FRAMES[01]); yield return Tick(3);
 		SetFrame(RELOAD_FRAMES[02]); yield return Tick(2);
 		SetFrame(RELOAD_FRAMES[03]); yield return Tick(2);
 		SetFrame(RELOAD_FRAMES[04]); yield return Tick(1);
 		SetFrame(RELOAD_FRAMES[05]); yield return Tick(1);
+
+		// LIBR
 		SetFrame(RELOAD_FRAMES[06]); yield return Tick(2);
 		SetFrame(RELOAD_FRAMES[07]); yield return Tick(2);
 		SetFrame(RELOAD_FRAMES[08]); yield return Tick(2);
@@ -147,6 +165,8 @@ public class Enforcer : Weapon {
 		SetFrame(RELOAD_FRAMES[14]); yield return Tick(3);
 		LoadMag();
 		SetFrame(RELOAD_FRAMES[15]); yield return Tick(10);
+
+		// LIBE
 		SetFrame(RELOAD_FRAMES[16]); yield return Tick(5);
 		SetFrame(RELOAD_FRAMES[17]); yield return Tick(4);
 		SetFrame(RELOAD_FRAMES[18]); yield return Tick(3);
@@ -154,6 +174,35 @@ public class Enforcer : Weapon {
 		SetFrame(RELOAD_FRAMES[20]); yield return Tick(2);
 		SetFrame(RELOAD_FRAMES[21]); yield return Tick(2);
 		SetFrame(RELOAD_FRAMES[22]); yield return Tick(2);
+		SetFrame(RELOAD_FRAMES[23]); yield return Tick(2);
+
+		// LIBC
+		SetFrame(RELOAD_FRAMES[24]); yield return Tick(1);
+		SetFrame(RELOAD_FRAMES[25]); yield return Tick(1);
+		SetFrame(RELOAD_FRAMES[26]); yield return Tick(2);
+		SetFrame(RELOAD_FRAMES[27]); yield return Tick(2);
+		SetFrame(RELOAD_FRAMES[28]); yield return Tick(2);
+		SetFrame(RELOAD_FRAMES[29]); yield return Tick(3);
+		SetFrame(RELOAD_FRAMES[30]); yield return Tick(4);
+		
+		SetFrame(RELOAD_FRAMES[31]); yield return Tick(6);
+		SetFrame(RELOAD_FRAMES[32]); yield return Tick(1);
+		SetFrame(RELOAD_FRAMES[33]); yield return Tick(1);
+		SetFrame(RELOAD_FRAMES[34]); yield return Tick(1);
+		SetFrame(RELOAD_FRAMES[35]); yield return Tick(6);
+		SetFrame(RELOAD_FRAMES[34]); yield return Tick(1);
+		SetFrame(RELOAD_FRAMES[33]); yield return Tick(1);
+		SetFrame(RELOAD_FRAMES[32]); yield return Tick(2);
+		SetFrame(RELOAD_FRAMES[31]); yield return Tick(3);
+
+		SetFrame(RELOAD_FRAMES[30]); yield return Tick(3);
+		SetFrame(RELOAD_FRAMES[29]); yield return Tick(2);
+		SetFrame(RELOAD_FRAMES[28]); yield return Tick(2);
+		SetFrame(RELOAD_FRAMES[27]); yield return Tick(2);
+		SetFrame(RELOAD_FRAMES[26]); yield return Tick(2);
+		SetFrame(RELOAD_FRAMES[25]); yield return Tick(1);
+		SetFrame(RELOAD_FRAMES[24]); yield return Tick(1);
+
 		SetTickRate(35);
 		GoTo(IDLE_ANIMATION);
 	}
